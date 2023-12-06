@@ -8,9 +8,39 @@
 import UIKit
 
 class Canvas: UIView {
-   
+    
     var currentLines: [NSValue: Line] = [:]
     var finishedLines: [Line] = []
+    var finishedColor = UIColor.black
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(doubleTabRecognizer))
+        doubleTapGesture.numberOfTapsRequired = 2
+//        doubleTapGesture.delaysTouchesBegan = true
+        
+        
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(longPressRecognizer))
+        longPressGesture.minimumPressDuration = 1
+        
+        addGestureRecognizer(doubleTapGesture)
+        // add long press to gesture recognizer list
+        addGestureRecognizer(longPressGesture)
+    }
+    
+    // create long press action
+    @objc func longPressRecognizer(_ gestureRecognizer: UIGestureRecognizer){
+        
+        print(gestureRecognizer.location(in: self))
+        finishedColor = UIColor.green
+        setNeedsLayout()
+    }
+
+    @objc func doubleTabRecognizer(){
+        finishedLines = []
+        setNeedsDisplay()
+    }
     
     func stroke(_ line: Line) {
         let path = UIBezierPath()
@@ -23,7 +53,7 @@ class Canvas: UIView {
     
     override func draw(_ rect: CGRect) {
         // Draw finished lines in black
-        UIColor.black.setStroke()
+        finishedColor.setStroke()
         for line in finishedLines {
             stroke(line)
         }
@@ -70,5 +100,14 @@ class Canvas: UIView {
         
         // redraw the view
         setNeedsDisplay()
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        for touch in touches {
+            let key = NSValue(nonretainedObject: touch)
+            currentLines.removeValue(forKey: key)
+        }
+        print("touche cancelled")
     }
 }
